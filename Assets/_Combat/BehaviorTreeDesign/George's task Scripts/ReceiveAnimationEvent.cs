@@ -20,8 +20,9 @@ namespace BehaviorDesigner.Runtime.Tasks
 			}
 		}
 		public override void OnBehaviorComplete () {
-			// destroy after this behavior is finish or destroy
-			anime_event.Animation_Complete_Event -= Anime_complete; 
+			// unsubscribe after this behavior is finish or destroy
+			// use null detect is because no matter this task is start or not, it execute this code when behavior tree comlete or destory
+			if (anime_event != null) anime_event.Animation_Complete_Event -= Anime_complete;
 		}
 
 		public override TaskStatus OnUpdate () {
@@ -33,8 +34,8 @@ namespace BehaviorDesigner.Runtime.Tasks
         {
 			// reset value after this task successed
             done = false;
-			// destroy the link because OnStart will call every time after this task successed
-			anime_event.Animation_Complete_Event -= Anime_complete; 
+			// unsubscribe because OnStart will call every time after this task successed
+			if (anime_event != null) anime_event.Animation_Complete_Event -= Anime_complete; 
         }
 
 		private void Anime_complete (string _s){
