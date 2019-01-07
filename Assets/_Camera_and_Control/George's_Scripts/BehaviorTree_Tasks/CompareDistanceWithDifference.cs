@@ -4,7 +4,7 @@ using BehaviorDesigner.Runtime.Tasks;
 
 namespace BehaviorDesigner.Runtime.Tasks
 {
-    [TaskCategory("George's Tasks")]
+    [TaskCategory("George's Script")]
     [TaskDescription(@"Calculate distance between two obj and compare with value." +
                       "If distance is smaller than value then return success.")]
     public class CompareDistanceWithDifference : Conditional
