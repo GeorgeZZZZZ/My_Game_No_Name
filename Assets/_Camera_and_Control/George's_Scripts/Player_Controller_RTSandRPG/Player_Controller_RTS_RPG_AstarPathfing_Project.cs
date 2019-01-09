@@ -7,7 +7,7 @@ using System.Text;
 using RootMotion.Dynamics;
 
 //	0.7.8
-
+// 2019.01.08 change animation control from bool to triger
 public enum Player_Move_Behivior
 {
     Move_Or_Turn_Player_According_To_Camera,
@@ -25,7 +25,8 @@ public enum Player_Turn_Behivior
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(CapsuleCollider))]
 [RequireComponent(typeof(Selectable_Unit_Controller_AstarPathfing_Project))]
-public class Player_Controller_RTS_RPG_AstarPathfing_Project : MonoBehaviour {
+public class Player_Controller_RTS_RPG_AstarPathfing_Project : MonoBehaviour
+{
 
     //  drop-manu
     public Player_Move_Behivior PlayerMoveBehivior; //  declar serializable enum for customer inspector script to look for
@@ -33,64 +34,65 @@ public class Player_Controller_RTS_RPG_AstarPathfing_Project : MonoBehaviour {
 
     //
     public GameObject Cam_Center_Point;
-	public GameObject Select_Circle_Prefab;
+    public GameObject Select_Circle_Prefab;
     public BehaviourPuppet BehaviourPuppet;
 
-    public int Edge_Boundary = 1;	//	valuable use for detect limit movement which mouse move near screen edge, unit in pixel 
-	public float Player_Normal_Speed=1f;
-	public float Player_Run_Speed=2.5f;
-	public float Player_Turnning_Speed=180f; //180 degree per second
-	public float Jump_Speed = 200f;
+    public int Edge_Boundary = 1;   //	valuable use for detect limit movement which mouse move near screen edge, unit in pixel 
+    public float Player_Normal_Speed = 1f;
+    public float Player_Run_Speed = 2.5f;
+    public float Player_Turnning_Speed = 180f; //180 degree per second
+    public float Jump_Speed = 200f;
 
-    public bool Move_Player_towards_Character_Facing = false;	//	WASD control forward/ backward/ left shift/ right shift
-	public bool Move_Player_Along_World_Axis = false;	//	WASD control forward/ backward/ left shift/ right shift
-	public bool Turn_Player_by_Keyboard = false;	//	QE control turn left/ turn right
-	public bool Turn_Player_by_Mouse_Point = false;	//	turn to mouse position
+    public bool Move_Player_towards_Character_Facing = false;   //	WASD control forward/ backward/ left shift/ right shift
+    public bool Move_Player_Along_World_Axis = false;   //	WASD control forward/ backward/ left shift/ right shift
+    public bool Turn_Player_by_Keyboard = false;    //	QE control turn left/ turn right
+    public bool Turn_Player_by_Mouse_Point = false; //	turn to mouse position
 
-	public bool Move_Or_Turn_Player_According_To_Camera = false;	//	WASD control forward/ backward/ left shift or turn left by Camera behavior/ right shift or turn right by Camera behavior
-    
-	public bool Force_RTS_Cam_View = false;	//	Force enter RTS view mode, not perfect yet
-	[HideInInspector] public bool characterMovingFlag = false;	//	flag is true if get input for character move
+    public bool Move_Or_Turn_Player_According_To_Camera = false;    //	WASD control forward/ backward/ left shift or turn left by Camera behavior/ right shift or turn right by Camera behavior
 
-	private Camera playerCam;
-	private Vector3 moveCalculation;
-	private Rigidbody playerRigidbody;
-	private Animator anim;
+    public bool Force_RTS_Cam_View = false; //	Force enter RTS view mode, not perfect yet
+    [HideInInspector] public bool characterMovingFlag = false;  //	flag is true if get input for character move
 
-	private float speed;
-	private float turnSpeed;
-	private float retreatDivisor = 2f; // when character go backward or sideward, he's run and walk speed will divide by this number
+    private Camera playerCam;
+    private Vector3 moveCalculation;
+    private Rigidbody playerRigidbody;
+    private Animator anim;
 
-	private bool mouseAreaSelec = false;	//	mouse area selecting flag
-	private Vector3 curMousPos;
+    private float speed;
+    private float turnSpeed;
+    private float retreatDivisor = 2f; // when character go backward or sideward, he's run and walk speed will divide by this number
 
-	private bool camFollowFlag;
+    private bool mouseAreaSelec = false;    //	mouse area selecting flag
+    private Vector3 curMousPos;
 
-	private float newYAng;	//	y angle container, for MoTbKaCB () to calculate next character y angle depending on camera center
+    private bool camFollowFlag;
 
-	private bool isRunning;
-	private bool isJumpping;
-	private bool isFalling;
-	private int layerMaskFloor;
-	private int layerMaskObstacles;
-	private int layerMaskHeightAdjust;
-	private float jumpTimer;
+    private float newYAng;  //	y angle container, for MoTbKaCB () to calculate next character y angle depending on camera center
 
-	// Use this for initialization
-	void Start () {
-		
-		playerRigidbody = GetComponent <Rigidbody> ();
-		playerRigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;		//freeze rigidbody's rotation to prevent fall down to floor
-		//playerRigidbody.drag = Mathf.Infinity;
-		playerRigidbody.angularDrag = Mathf.Infinity;	//prevant character keep turn not stop after finish rotation
-		anim = GetComponent <Animator> ();
-		playerCam = Cam_Center_Point.GetComponent <Camera_Controller> ().Cam_Obj.GetComponent <Camera> ();
+    private bool isRunning;
+    private bool isJumpping;
+    private bool isFalling;
+    private int layerMaskFloor;
+    private int layerMaskObstacles;
+    private int layerMaskHeightAdjust;
+    private float jumpTimer;
+    private float timer = 1;
+    // Use this for initialization
+    void Start()
+    {
 
-		newYAng = transform.eulerAngles.y;	//	initialize value in first run
-		layerMaskFloor = LayerMask.GetMask ("Floor");
-		layerMaskObstacles = LayerMask.GetMask ("Obstacles");
-		layerMaskHeightAdjust =  LayerMask.GetMask ("HeightAdjust");
-	}
+        playerRigidbody = GetComponent<Rigidbody>();
+        playerRigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;      //freeze rigidbody's rotation to prevent fall down to floor
+                                                                                                                        //playerRigidbody.drag = Mathf.Infinity;
+        playerRigidbody.angularDrag = Mathf.Infinity;   //prevant character keep turn not stop after finish rotation
+        anim = GetComponent<Animator>();
+        playerCam = Cam_Center_Point.GetComponent<Camera_Controller>().Cam_Obj.GetComponent<Camera>();
+
+        newYAng = transform.eulerAngles.y;  //	initialize value in first run
+        layerMaskFloor = LayerMask.GetMask("Floor");
+        layerMaskObstacles = LayerMask.GetMask("Obstacles");
+        layerMaskHeightAdjust = LayerMask.GetMask("HeightAdjust");
+    }
 
     // Update is called once per physics update
     void FixedUpdate()
@@ -207,216 +209,260 @@ public class Player_Controller_RTS_RPG_AstarPathfing_Project : MonoBehaviour {
         }
     }
 
-	void OnGUI() {
+    void OnGUI()
+    {
 
-		//	RTS selection function, mouse click then start draw selection area
-		if (mouseAreaSelec) {
-			// Create a rect from both mouse positions
-			var rect = Utils_RTS_Draw.GetScreenRect( curMousPos, Input.mousePosition );
-			Utils_RTS_Draw.DrawScreenRect( rect, new Color( 0.8f, 0.8f, 0.95f, 0.25f ) );
-			Utils_RTS_Draw.DrawScreenRectBorder( rect, 2, new Color( 0.8f, 0.8f, 0.95f ) );
-		}
-	}
+        //	RTS selection function, mouse click then start draw selection area
+        if (mouseAreaSelec)
+        {
+            // Create a rect from both mouse positions
+            var rect = Utils_RTS_Draw.GetScreenRect(curMousPos, Input.mousePosition);
+            Utils_RTS_Draw.DrawScreenRect(rect, new Color(0.8f, 0.8f, 0.95f, 0.25f));
+            Utils_RTS_Draw.DrawScreenRectBorder(rect, 2, new Color(0.8f, 0.8f, 0.95f));
+        }
+    }
 
-	/********************************
+    /********************************
 	 * --- Functions
 	 ********************************/
-	//	add acceleration to rigidbody
-	private void JumpCharacter () {
-			playerRigidbody.AddForce (transform.up * Jump_Speed, ForceMode.Acceleration);
-	}
+    //	add acceleration to rigidbody
+    private void JumpCharacter()
+    {
+        playerRigidbody.AddForce(transform.up * Jump_Speed, ForceMode.Acceleration);
+    }
 
-	//	move or turn by keyboard according camera behavior, typical RPG control system
-	//	FB: forward/backward, LR: Left/Right, SP: Speed, RD: retreatDivisor
-	private void MoTbKaCB (float FB, float LR, float movSP, float turnSP, float RD) {
-		float tarYAng = Cam_Center_Point.transform.eulerAngles.y;
-		float curYAng = transform.eulerAngles.y;
+    //	move or turn by keyboard according camera behavior, typical RPG control system
+    //	FB: forward/backward, LR: Left/Right, SP: Speed, RD: retreatDivisor
+    private void MoTbKaCB(float FB, float LR, float movSP, float turnSP, float RD)
+    {
+        float tarYAng = Cam_Center_Point.transform.eulerAngles.y;
+        float curYAng = transform.eulerAngles.y;
 
-		if (LR > 0f) {	//	if character is shiftting right
-			newYAng = tarYAng + 90f;
-			if (FB > 0f)
-				newYAng -= 45f;
-			else if (FB < 0f)
-				newYAng += 45f;
-		} else if (LR < 0f) {	//	if character is shiftting left
-			newYAng = tarYAng - 90f;
-			if (FB > 0f)
-				newYAng += 45;
-			else if (FB < 0f)
-				newYAng -= 45f;
-		} else if (FB > 0f) {	//	if character is moving forward
-			newYAng = tarYAng;
-		} else if (FB < 0f) {	//	if character is moving backward
+        if (LR > 0f)
+        {   //	if character is shiftting right
+            newYAng = tarYAng + 90f;
+            if (FB > 0f)
+                newYAng -= 45f;
+            else if (FB < 0f)
+                newYAng += 45f;
+        }
+        else if (LR < 0f)
+        {   //	if character is shiftting left
+            newYAng = tarYAng - 90f;
+            if (FB > 0f)
+                newYAng += 45;
+            else if (FB < 0f)
+                newYAng -= 45f;
+        }
+        else if (FB > 0f)
+        {   //	if character is moving forward
+            newYAng = tarYAng;
+        }
+        else if (FB < 0f)
+        {   //	if character is moving backward
 
-			//	prenvent character and camera stuck at certain point and making camera shake badly
-			float curBackAng = curYAng + 180f;	//	safety value for judgement after character move pass 0 point
-			float tarBackAng = tarYAng + 180f;	//	safety value for judgement after camera center move pass 0 point
-			if (curBackAng > 360f)	//	make sure value is in 360
-				curBackAng -= 360f;
-			if (tarBackAng > 360f)
-				tarBackAng -= 360f;
-			if (tarYAng <= curYAng) {	
-				if (tarBackAng > curBackAng & tarYAng < curBackAng)	
-					newYAng = tarYAng - 179f;	//	if character direction is at right of the camera center direction
-				else
-					newYAng = tarYAng + 179f;
-			} else if (tarYAng > curYAng) {
-				if (tarBackAng <= curBackAng & tarYAng > curBackAng)
-					newYAng = tarYAng + 179f;	//	if character direction is at left of the camera center direction
-				else
-					newYAng = tarYAng - 179f;
-			} 
-		}
+            //	prenvent character and camera stuck at certain point and making camera shake badly
+            float curBackAng = curYAng + 180f;  //	safety value for judgement after character move pass 0 point
+            float tarBackAng = tarYAng + 180f;  //	safety value for judgement after camera center move pass 0 point
+            if (curBackAng > 360f)  //	make sure value is in 360
+                curBackAng -= 360f;
+            if (tarBackAng > 360f)
+                tarBackAng -= 360f;
+            if (tarYAng <= curYAng)
+            {
+                if (tarBackAng > curBackAng & tarYAng < curBackAng)
+                    newYAng = tarYAng - 179f;   //	if character direction is at right of the camera center direction
+                else
+                    newYAng = tarYAng + 179f;
+            }
+            else if (tarYAng > curYAng)
+            {
+                if (tarBackAng <= curBackAng & tarYAng > curBackAng)
+                    newYAng = tarYAng + 179f;   //	if character direction is at left of the camera center direction
+                else
+                    newYAng = tarYAng - 179f;
+            }
+        }
 
-		Quaternion tempQuat = Quaternion.Euler (new Vector3 (0f, newYAng, 0f));
-		Quaternion newAng = Quaternion.RotateTowards (transform.rotation, tempQuat, turnSP * Time.deltaTime);
+        Quaternion tempQuat = Quaternion.Euler(new Vector3(0f, newYAng, 0f));
+        Quaternion newAng = Quaternion.RotateTowards(transform.rotation, tempQuat, turnSP * Time.deltaTime);
 
-		if (transform.eulerAngles.y != newAng.eulerAngles.y)
-			playerRigidbody.MoveRotation (newAng);
+        if (transform.eulerAngles.y != newAng.eulerAngles.y)
+            playerRigidbody.MoveRotation(newAng);
 
-		if (FB != 0 | LR != 0) {
-			//move forward on charactor faceing basis on the direction of Camera
-			moveCalculation = (Cam_Center_Point.transform.forward * FB) + (Cam_Center_Point.transform.right * LR);
-			playerRigidbody.MovePosition (transform.position + moveCalculation.normalized * movSP * Time.deltaTime);
-		}
-	}
+        if (FB != 0 | LR != 0)
+        {
+            //move forward on charactor faceing basis on the direction of Camera
+            moveCalculation = (Cam_Center_Point.transform.forward * FB) + (Cam_Center_Point.transform.right * LR);
+            playerRigidbody.MovePosition(transform.position + moveCalculation.normalized * movSP * Time.deltaTime);
+        }
+    }
 
-	//	RTS style Point Selection
-	private void RTS_Point_Selec (bool mousLB) {
-		
-		//	search obj which contain Selectable_Unit_Controller.cs
-		if (mousLB & !mouseAreaSelec) {
-			
-			//	cast a ray from camera and go through mouse position
-			Ray camMousRay = playerCam.ScreenPointToRay (Input.mousePosition);
-			RaycastHit selectionHit;
+    //	RTS style Point Selection
+    private void RTS_Point_Selec(bool mousLB)
+    {
 
-			//	cast a ray from camera and go through mouse position
-			foreach (var selectableObj in FindObjectsOfType <Selectable_Unit_Controller_AstarPathfing_Project>()) {
+        //	search obj which contain Selectable_Unit_Controller.cs
+        if (mousLB & !mouseAreaSelec)
+        {
 
-				/******************
+            //	cast a ray from camera and go through mouse position
+            Ray camMousRay = playerCam.ScreenPointToRay(Input.mousePosition);
+            RaycastHit selectionHit;
+
+            //	cast a ray from camera and go through mouse position
+            foreach (var selectableObj in FindObjectsOfType<Selectable_Unit_Controller_AstarPathfing_Project>())
+            {
+
+                /******************
 				 * may need add code for selected obj in to a global list for AI control at here
 				 ******************/
 
-				if (Physics.Raycast (camMousRay, out selectionHit, 50f)) {
-					if (selectableObj.GetComponent <Collider> ().bounds.Contains (selectionHit.point)) {
-						if (selectableObj.selectionCircle == null) {
-							selectableObj.selectionCircle = Instantiate (Select_Circle_Prefab);
-							selectableObj.selectionCircle.transform.SetParent (selectableObj.transform, false);
-							selectableObj.selectionCircle.transform.eulerAngles = new Vector3 (90, 0, 0);
-						}
-					} else {
-						if (selectableObj.selectionCircle != null) {
-							Destroy (selectableObj.selectionCircle.gameObject);
-							selectableObj.selectionCircle = null;
-						}
-					}
-				}
-			}
-		}
-	}
+                if (Physics.Raycast(camMousRay, out selectionHit, 50f))
+                {
+                    if (selectableObj.GetComponent<Collider>().bounds.Contains(selectionHit.point))
+                    {
+                        if (selectableObj.selectionCircle == null)
+                        {
+                            selectableObj.selectionCircle = Instantiate(Select_Circle_Prefab);
+                            selectableObj.selectionCircle.transform.SetParent(selectableObj.transform, false);
+                            selectableObj.selectionCircle.transform.eulerAngles = new Vector3(90, 0, 0);
+                        }
+                    }
+                    else
+                    {
+                        if (selectableObj.selectionCircle != null)
+                        {
+                            Destroy(selectableObj.selectionCircle.gameObject);
+                            selectableObj.selectionCircle = null;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-	//	RTS style Area Selection
-	private void RTS_Area_Selec (bool mousLB) {
-		
-		//	if press left mouse button start draw square
-		if (mousLB & !mouseAreaSelec) {
-			mouseAreaSelec = true;
-			curMousPos = Input.mousePosition;
-		}
+    //	RTS style Area Selection
+    private void RTS_Area_Selec(bool mousLB)
+    {
 
-		//	if release left mouse button stop draw square
-		//	original detect mousLefButtUp, but some times can't get release signal
-		if (!mousLB) {
-			mouseAreaSelec = false;
-		}
+        //	if press left mouse button start draw square
+        if (mousLB & !mouseAreaSelec)
+        {
+            mouseAreaSelec = true;
+            curMousPos = Input.mousePosition;
+        }
 
-		//	use projector give a circle under selected unity
-		if (mouseAreaSelec) {
-			//	search obj which contain component Selectable_Unit_Controller.cs
-			foreach (var selectableObj in FindObjectsOfType <Selectable_Unit_Controller_AstarPathfing_Project>()) {
-				//	call judgement function and see if obj is in selection area
-				if (IsWithinSelectionBounds (selectableObj.gameObject)) {
-					if (selectableObj.selectionCircle == null) {
-						selectableObj.selectionCircle = Instantiate (Select_Circle_Prefab);
-						selectableObj.selectionCircle.transform.SetParent( selectableObj.transform, false );
-						selectableObj.selectionCircle.transform.eulerAngles = new Vector3( 90, 0, 0 );
-					}
-				} 
-			}
-		}
-	}
+        //	if release left mouse button stop draw square
+        //	original detect mousLefButtUp, but some times can't get release signal
+        if (!mousLB)
+        {
+            mouseAreaSelec = false;
+        }
+
+        //	use projector give a circle under selected unity
+        if (mouseAreaSelec)
+        {
+            //	search obj which contain component Selectable_Unit_Controller.cs
+            foreach (var selectableObj in FindObjectsOfType<Selectable_Unit_Controller_AstarPathfing_Project>())
+            {
+                //	call judgement function and see if obj is in selection area
+                if (IsWithinSelectionBounds(selectableObj.gameObject))
+                {
+                    if (selectableObj.selectionCircle == null)
+                    {
+                        selectableObj.selectionCircle = Instantiate(Select_Circle_Prefab);
+                        selectableObj.selectionCircle.transform.SetParent(selectableObj.transform, false);
+                        selectableObj.selectionCircle.transform.eulerAngles = new Vector3(90, 0, 0);
+                    }
+                }
+            }
+        }
+    }
 
 
-	//	RTS selection function, judgement for selectable obj in or not in selction area from camera view angle 
-	public bool IsWithinSelectionBounds (GameObject gameObject) {
-		
-		if (!mouseAreaSelec)
-			return false;
-		
-		var cam = playerCam;
-		var viewportBounds =
-			Utils_RTS_Draw.GetViewportBounds (cam, curMousPos, Input.mousePosition);
-			
-		return viewportBounds.Contains (
-			cam.WorldToViewportPoint (gameObject.transform.position));	//	use bounds() search if obj is in selection area
-	}
+    //	RTS selection function, judgement for selectable obj in or not in selction area from camera view angle 
+    public bool IsWithinSelectionBounds(GameObject gameObject)
+    {
 
-	//	get current mouse position on screen
-	private void MousPos (out float mousXPos, out float mousYPos) {
-		//	current mouse position on screen in pixels
-		//	0 point is at left, down of game window
-		mousXPos = Input.mousePosition.x;	
-		mousYPos = Input.mousePosition.y;
-	}
+        if (!mouseAreaSelec)
+            return false;
 
-	//	Move Player towards Character Facing
-	//	FB: forward/backward, LR: Left/Right, SP: Speed, RD: retreatDivisor
-	void MPtCF(float FB, float LR, float SP, float RD){
-		
-		//move basis on the character face on (character local axis x, y, z)
-		moveCalculation = (transform.forward * FB) + (transform.right * LR);
-		if (FB > 0f && LR == 0f) {
-			playerRigidbody.MovePosition (transform.position + moveCalculation.normalized * SP * Time.deltaTime);
-		} else {
-			playerRigidbody.MovePosition (transform.position + moveCalculation.normalized * SP/RD * Time.deltaTime);
-		}
-	}
+        var cam = playerCam;
+        var viewportBounds =
+            Utils_RTS_Draw.GetViewportBounds(cam, curMousPos, Input.mousePosition);
 
-	//	Move Player along world axis x, y, z
-	//	FB: forward/backward, LR: Left/Right, SP: Speed, RD: retreatDivisor
-	void MPaW(float FB, float LR, float SP, float RD){
+        return viewportBounds.Contains(
+            cam.WorldToViewportPoint(gameObject.transform.position));   //	use bounds() search if obj is in selection area
+    }
 
-		moveCalculation.Set (LR, 0f, FB);		//package keyboard value into vector3 type for later calcuation
+    //	get current mouse position on screen
+    private void MousPos(out float mousXPos, out float mousYPos)
+    {
+        //	current mouse position on screen in pixels
+        //	0 point is at left, down of game window
+        mousXPos = Input.mousePosition.x;
+        mousYPos = Input.mousePosition.y;
+    }
 
-		//judgment if character is walk or run backward or sideward, speed will dive by divier
-		if (FB > 0f && LR == 0f) {
-			moveCalculation = moveCalculation.normalized * SP * Time.deltaTime;
-		} else {
-			moveCalculation = moveCalculation.normalized * SP/RD * Time.deltaTime;
-		}
-		playerRigidbody.MovePosition (transform.position + moveCalculation);
-	}
+    //	Move Player towards Character Facing
+    //	FB: forward/backward, LR: Left/Right, SP: Speed, RD: retreatDivisor
+    void MPtCF(float FB, float LR, float SP, float RD)
+    {
 
-	//	Turning Player by Keyboard Control
-	//	LR: Left/Right, TS: Turn Speed
-	void TPbKC(float LR, float TS){
-		Vector3 playerToKeyboard= new Vector3(0f, LR*TS*Time.deltaTime, 0);	//Same if write: float playerToKeyboard = lr*TS*Time.deltaTime; 
-		Quaternion tbkcRotation = Quaternion.Euler (playerToKeyboard);	//if use float then the code will be: Quaternion.Euler (0f, playerToKeyboard, 0f);
+        //move basis on the character face on (character local axis x, y, z)
+        moveCalculation = (transform.forward * FB) + (transform.right * LR);
+        if (FB > 0f && LR == 0f)
+        {
+            playerRigidbody.MovePosition(transform.position + moveCalculation.normalized * SP * Time.deltaTime);
+        }
+        else
+        {
+            playerRigidbody.MovePosition(transform.position + moveCalculation.normalized * SP / RD * Time.deltaTime);
+        }
+    }
 
-		playerRigidbody.MoveRotation (playerRigidbody.rotation*tbkcRotation);
-	}
+    //	Move Player along world axis x, y, z
+    //	FB: forward/backward, LR: Left/Right, SP: Speed, RD: retreatDivisor
+    void MPaW(float FB, float LR, float SP, float RD)
+    {
 
-	//	Turning Player by Mouse Pointing
-	void TPbMP(){
-		Quaternion roteTo;
-		Vector3 mousHitPos;
+        moveCalculation.Set(LR, 0f, FB);        //package keyboard value into vector3 type for later calcuation
 
-		if (Public_Functions.Mous_Click_Get_Pos_Dir (playerCam, transform, layerMaskFloor, out mousHitPos, out roteTo)) {
-			playerRigidbody.MoveRotation (roteTo);
-		}
-		
-	}
+        //judgment if character is walk or run backward or sideward, speed will dive by divier
+        if (FB > 0f && LR == 0f)
+        {
+            moveCalculation = moveCalculation.normalized * SP * Time.deltaTime;
+        }
+        else
+        {
+            moveCalculation = moveCalculation.normalized * SP / RD * Time.deltaTime;
+        }
+        playerRigidbody.MovePosition(transform.position + moveCalculation);
+    }
+
+    //	Turning Player by Keyboard Control
+    //	LR: Left/Right, TS: Turn Speed
+    void TPbKC(float LR, float TS)
+    {
+        Vector3 playerToKeyboard = new Vector3(0f, LR * TS * Time.deltaTime, 0);    //Same if write: float playerToKeyboard = lr*TS*Time.deltaTime; 
+        Quaternion tbkcRotation = Quaternion.Euler(playerToKeyboard);   //if use float then the code will be: Quaternion.Euler (0f, playerToKeyboard, 0f);
+
+        playerRigidbody.MoveRotation(playerRigidbody.rotation * tbkcRotation);
+    }
+
+    //	Turning Player by Mouse Pointing
+    void TPbMP()
+    {
+        Quaternion roteTo;
+        Vector3 mousHitPos;
+
+        if (Public_Functions.Mous_Click_Get_Pos_Dir(playerCam, transform, layerMaskFloor, out mousHitPos, out roteTo))
+        {
+            playerRigidbody.MoveRotation(roteTo);
+        }
+
+    }
 
 
 
@@ -461,37 +507,77 @@ public class Player_Controller_RTS_RPG_AstarPathfing_Project : MonoBehaviour {
                 isFalling = false;
             }
         }
-        
+
         return false;
     }
 
-	//	Animation management
-	private void Animating (float FB, float LR, bool JP, bool FALL){
-		bool walking = FB != 0f || LR != 0f;
-		
-		if (isJumpping || isFalling) {
-			walking = false;
-			isRunning = false;
-		}
+    private bool _walkStatus = false;
+    private bool _runStatus = false;
+    //	Animation management
+    private void Animating(float FB, float LR, bool JP, bool FALL)
+    {
+        bool walking = false;
+        //walking = FB != 0f || LR != 0f;
+        // 19.01.09 change key judgement as getkey not as getaxis is because getaxis has a very slow value reduce rate
+		// and animation always collide with others like pickup
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+            walking = true;
+        AnimatorClipInfo[] _anime_info = anim.GetCurrentAnimatorClipInfo(0);
 
-		anim.SetBool ("IsWalking", walking);
-		anim.SetBool ("IsRunning", isRunning);
-		anim.SetBool ("IsJumpping", JP);
-        anim.SetBool ("Fall", FALL);
+        if (isJumpping || isFalling)
+        {
+            walking = false;
+            isRunning = false;
+        }
+
+        // 19.01.08 set timer reduce animtion check frequency to avoid multiple triger animtion in short time
+        timer = timer - Time.deltaTime;
+        if (timer <= 0)
+        {
+            timer = 0.35f;
+            // 2019.01.08 change to bool to triger
+            // current animation
+            if (walking && isRunning && _anime_info[0].clip.name != "standing_run_forward_inPlace") anim.SetTrigger("IsRunning");
+            else if (walking && !isRunning && _anime_info[0].clip.name != "standing_walk_forward_inPlace") anim.SetTrigger("IsWalking");
+
+            if (!walking && !isRunning && _anime_info[0].clip.name == "standing_run_forward_inPlace") anim.SetTrigger("IsNotRunning");
+            if (!walking && !isRunning && _anime_info[0].clip.name == "standing_walk_forward_inPlace") anim.SetTrigger("IsNotWalking");
+        }
+        //if (walking) anim.Play("walking");
+        /*
+		if (_walkStatus != walking)
+		{
+			_walkStatus = walking;
+			if (walking)anim.SetTrigger ("IsWalking");
+			else anim.SetTrigger ("IsNotWalking");
+		}
+		 
+		if (_runStatus != isRunning)
+		{
+			_runStatus = isRunning;
+			if (isRunning)anim.SetTrigger ("IsRunning");
+			else anim.SetTrigger ("IsNotRunning");
+		}
+		*/
+        anim.SetBool("IsJumpping", JP);
+        anim.SetBool("Fall", FALL);
     }
 
     //	force camera center stop follow player
-    private void RELEASE () {
-		Cam_Center_Point.GetComponent <Camera_Controller> ().followPlayerFlag = false;
-	}
+    private void RELEASE()
+    {
+        Cam_Center_Point.GetComponent<Camera_Controller>().followPlayerFlag = false;
+    }
 
-	private void DEBUG () {
-		
-		//debug try disconnect camera follow
-		if (Input.GetKey (KeyCode.T)) {
-			RELEASE ();
-		}
-	}
+    private void DEBUG()
+    {
+
+        //debug try disconnect camera follow
+        if (Input.GetKey(KeyCode.T))
+        {
+            RELEASE();
+        }
+    }
 }
 
 //		Debug.Log ("GetButtonDown:  " + Input.GetButtonDown ("Run"));

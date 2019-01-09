@@ -6,6 +6,7 @@ TagManager:
   tags:
   - HealthBar
   - Weapon
+  - HitableUnit
   layers:
   - Default
   - TransparentFX
@@ -24,7 +25,7 @@ TagManager:
   - Enemy
   - 
   - 
-  - 
+  - PickableItem
   - 
   - 
   - Floor
